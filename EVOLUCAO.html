@@ -213,7 +213,9 @@
 
     <script>
         // --- Constantes da API ---
-        const API_URL = ''; // Use relative paths
+        const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? ''
+    : 'https://gglab.onrender.com';
 
         // --- Elementos da UI ---
         const startSection = document.getElementById('start-section');
