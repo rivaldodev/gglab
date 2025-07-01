@@ -11,12 +11,20 @@ const bcrypt = require('bcrypt'); // Importa o bcrypt para hash de senhas
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Confia nos cabeçalhos de proxy (essencial para produção em plataformas como Render/Vercel)
+app.set('trust proxy', 1); // Confia no primeiro proxy
+
 // Configuração da Sessão
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'uma-chave-secreta-muito-forte', // Em produção, use uma variável de ambiente
+    secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: process.env.NODE_ENV === 'production' } // Em produção, use `secure: true` com HTTPS
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // true em produção (HTTPS), false em dev (HTTP)
+        httpOnly: true,
+        sameSite: 'lax', // ou 'strict'
+        maxAge: 24 * 60 * 60 * 1000 // 24 horas
+    }
 }));
 
 // --- Middleware ---
