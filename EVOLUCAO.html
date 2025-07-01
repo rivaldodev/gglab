@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz: Evidências da Evolução</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(-45deg, #d946ef, #f97316, #a855f7, #ec4899);
+            background-size: 400% 400%;
+            animation: gradientAnimation 20s ease infinite;
+            overflow-x: hidden; 
+        }
+        #particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float-particle linear infinite;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 177.77%; 
+            height: 0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .option-btn {
+            transition: all 0.3s ease;
+        }
+        .correct {
+            background-color: #22c55e !important;
+            color: white !important;
+            border-color: #4ade80 !important;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+            animation: pulse 0.5s ease;
+        }
+        .incorrect {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #f87171 !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+            animation: shake 0.5s ease;
+        }
+        
+        /* Animações */
+        @keyframes gradientAnimation { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes float-particle { from { transform: translateY(0) rotate(0deg); opacity: 1; } to { transform: translateY(-120vh) rotate(360deg); opacity: 0; } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes score-pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); color: #fbbf24; } 100% { transform: scale(1); } }
+
+        .score-popped { animation: score-pop 0.4s ease-in-out; }
+        .section-fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
+        .section-fade-out { animation: fadeOut 0.5s ease-in-out forwards; }
+        .question-slide-in { animation: slideInUp 0.5s ease-in-out forwards; }
+
+        .title-gradient {
+            background: -webkit-linear-gradient(45deg, #fb923c, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(251, 146, 60, 0.4);
+        }
+        
+        .neon-btn {
+            background-color: #c026d3;
+            color: white;
+            border: 2px solid #f0abfc;
+            box-shadow: 0 0 10px #c026d3, 0 0 20px #f0abfc;
+            transition: all 0.3s ease;
+        }
+        .neon-btn:hover {
+            background-color: #d946ef;
+            box-shadow: 0 0 15px #c026d3, 0 0 30px #f0abfc, 0 0 40px #f5d0fe;
+        }
+        .neon-btn:disabled {
+            background-color: #701a75;
+            border-color: #a21caf;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
+        .cyber-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid #701a75;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+         .cyber-card:hover {
+            border-color: #d946ef;
+            box-shadow: 0 0 20px rgba(217, 70, 239, 0.3);
+        }
+        
+        .video-item-card {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid #701a75;
+            transition: all 0.3s ease;
+        }
+        .video-item-card:hover {
+            border-color: #d946ef;
+            box-shadow: 0 0 15px rgba(217, 70, 239, 0.3);
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+<body class="text-white flex items-center justify-center min-h-screen p-2 sm:p-4">
+    
+    <div id="particles-container"></div>
+
+    <main id="app-container" class="cyber-card w-full max-w-5xl mx-auto rounded-2xl shadow-2xl p-6 md:p-10">
+
+        <!-- Seção Inicial e Vídeos -->
+        <section id="start-section" class="section-fade-in">
+            <div class="flex flex-col justify-center items-center gap-2 mb-4">
+                <img src="https://i.imgur.com/rQvcyfg.png" alt="Ícone GGLAB" class="w-24 h-24 rounded-full border-2 border-fuchsia-400 shadow-lg" style="box-shadow: 0 0 20px rgba(244, 114, 182, 0.5);">
+                <p class="text-xl text-gray-200 font-bold tracking-widest mt-2">APRENDENDO COM GGLAB</p>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-center title-gradient mb-4">Quiz: As Evidências da Evolução</h1>
+            <p class="text-center text-gray-300 mb-6">Assista aos vídeos para desvendar os segredos da evolução. Depois, teste seus conhecimentos!</p>
+
+            <!-- Ranking -->
+            <div id="ranking-container" class="mb-6 bg-black/20 rounded-lg p-4 border border-fuchsia-800">
+                <h2 class="text-xl font-semibold text-center mb-4 text-orange-400">Ranking Top 10</h2>
+                <div id="ranking-list" class="text-center text-gray-300">
+                    <p>Carregando ranking...</p>
+                </div>
+            </div>
+
+            <div class="bg-black/20 rounded-lg p-6 border border-fuchsia-800">
+                 <h2 class="text-xl font-semibold text-center mb-6 text-orange-400">Painel de Estudo</h2>
+                <div id="videos-container" class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+                    <!-- Os vídeos serão carregados aqui dinamicamente -->
+                    <p class="col-span-3 text-center text-gray-400">Carregando vídeos...</p>
+                </div>
+            </div>
+
+            <div class="text-center mt-8">
+                 <input type="text" id="player-name" placeholder="Digite seu nome para começar" class="bg-slate-900/80 border-2 border-fuchsia-600 rounded-lg px-4 py-3 text-center text-white w-full max-w-xs mb-4 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400">
+                <br>
+                <button id="start-quiz-btn" class="neon-btn font-bold py-3 px-8 rounded-lg text-lg transform hover:scale-105">
+                    Começar o Quiz
+                </button>
+            </div>
+        </section>
+
+        <!-- Seção do Quiz -->
+        <section id="quiz-section" class="hidden">
+            <div id="quiz-header" class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-orange-400">Pergunta <span id="question-number"></span> de <span id="total-questions"></span></h2>
+                <div class="text-lg font-semibold bg-black/30 px-4 py-2 rounded-lg border border-fuchsia-800">Pontuação: <span id="score" class="inline-block">0</span></div>
+            </div>
+            <div id="question-container" class="bg-black/20 p-6 rounded-lg shadow-inner border border-fuchsia-800">
+                <p id="question-text" class="text-xl md:text-2xl mb-6 min-h-[6rem]"></p>
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Opções serão inseridas aqui via JS -->
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <button id="next-question-btn" class="neon-btn font-bold py-3 px-8 rounded-lg text-lg transform hover:scale-105 w-full md:w-auto" disabled>
+                    Próxima Pergunta
+                </button>
+            </div>
+        </section>
+
+        <!-- Seção de Resultados -->
+        <section id="results-section" class="hidden text-center">
+             <div class="flex flex-col justify-center items-center gap-2 mb-4">
+                <img src="https://i.imgur.com/rQvcyfg.png" alt="Ícone GGLAB" class="w-24 h-24 rounded-full border-2 border-fuchsia-400 shadow-lg" style="box-shadow: 0 0 20px rgba(244, 114, 182, 0.5);">
+                <p class="text-xl text-gray-200 font-bold tracking-widest mt-2">APRENDENDO COM GGLAB</p>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-center title-gradient mb-4">Quiz Finalizado!</h1>
+            <p class="text-xl text-gray-300 mb-8">Sua pontuação final foi:</p>
+            <div class="border-2 border-orange-400 rounded-full w-48 h-48 mx-auto flex flex-col items-center justify-center shadow-lg mb-8" style="box-shadow: 0 0 20px rgba(251, 146, 60, 0.5);">
+                <span id="final-score" class="text-5xl font-bold text-white"></span>
+                <span class="text-gray-300">pontos</span>
+            </div>
+            <p id="result-message" class="text-lg mb-8"></p>
+            <button id="restart-quiz-btn" class="neon-btn font-bold py-3 px-8 rounded-lg text-lg transform hover:scale-105">
+                Tentar Novamente
+            </button>
+        </section>
+
+    </main>
+
+    <script>
+        // --- Constantes da API ---
+        const API_URL = 'http://localhost:3000';
+
+        // --- Elementos da UI ---
+        const startSection = document.getElementById('start-section');
+        const quizSection = document.getElementById('quiz-section');
+        const resultSection = document.getElementById('result-section');
+        const playerNameInput = document.getElementById('player-name');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const rankingList = document.getElementById('ranking-list');
+        const videosContainer = document.getElementById('videos-container');
+
+        // --- ESTADO DO JOGO ---
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let playerName = '';
+        let answerSelected = false;
+
+        // --- FUNÇÕES DE INICIALIZAÇÃO ---
+
+        // Adiciona um listener que executa quando o DOM está totalmente carregado.
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStudyVideos();
+            loadRanking();
+            createParticles(30); // Cria as partículas de fundo
+        });
+
+        /**
+         * Carrega os vídeos de estudo da API e os exibe na página.
+         */
+        async function loadStudyVideos() {
+            try {
+                const response = await fetch(`${API_URL}/api/videos`);
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                const videos = await response.json();
+                
+                videosContainer.innerHTML = '';
+
+                if (!Array.isArray(videos) || videos.length === 0) {
+                    videosContainer.innerHTML = '<p class="col-span-3 text-center text-gray-400">Nenhum vídeo de estudo disponível no momento.</p>';
+                    return;
+                }
+
+                videos.forEach(video => {
+                    const videoCard = document.createElement('div');
+                    videoCard.className = 'video-item-card rounded-lg p-2 shadow-lg';
+                    
+                    const videoWrapper = document.createElement('div');
+                    videoWrapper.className = 'video-container';
+
+                    const iframe = document.createElement('iframe');
+                    iframe.src = video.embed_url;
+                    iframe.title = video.title;
+                    iframe.frameborder = '0';
+                    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                    iframe.allowfullscreen = true;
+
+                    videoWrapper.appendChild(iframe);
+                    videoCard.appendChild(videoWrapper);
+                    videosContainer.appendChild(videoCard);
+                });
+
+            } catch (error) {
+                console.error('Erro ao carregar vídeos de estudo:', error);
+                videosContainer.innerHTML = '<p class="col-span-3 text-center text-red-400">Não foi possível carregar os vídeos. Tente novamente mais tarde.</p>';
+            }
+        }
+
+        /**
+         * Busca o ranking dos 10 melhores jogadores.
+         */
+        async function loadRanking() {
+            try {
+                const response = await fetch(`${API_URL}/api/ranking`);
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                const ranking = await response.json();
+                
+                rankingList.innerHTML = '';
+
+                if (!Array.isArray(ranking) || ranking.length === 0) {
+                    rankingList.innerHTML = '<p class="text-center text-gray-400">Nenhum jogador no ranking ainda.</p>';
+                    return;
+                }
+
+                ranking.forEach((player, index) => {
+                    const playerRank = document.createElement('div');
+                    playerRank.className = 'flex justify-between items-center py-2';
+                    
+                    const playerInfo = document.createElement('span');
+                    playerInfo.className = 'text-gray-300';
+                    playerInfo.textContent = `${index + 1}. ${player.name}`;
+                    
+                    const playerScore = document.createElement('span');
+                    playerScore.className = 'text-orange-400 font-semibold';
+                    playerScore.textContent = `${player.score} pontos`;
+                    
+                    playerRank.appendChild(playerInfo);
+                    playerRank.appendChild(playerScore);
+                    rankingList.appendChild(playerRank);
+                });
+
+            } catch (error) {
+                console.error('Erro ao carregar ranking:', error);
+                rankingList.innerHTML = '<p class="text-center text-red-400">Não foi possível carregar o ranking. Tente novamente mais tarde.</p>';
+            }
+        }
+
+        // --- EFEITOS SONOROS ---
+        let synthsReady = false;
+        let hoverSynth, clickSynth, correctSynth, incorrectSynth, startSynth, victorySynth, defeatSynth;
+
+        function setupAudio() {
+            if (synthsReady) return;
+            hoverSynth = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.1, release: 0.1 } }).toDestination();
+            clickSynth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.05, release: 0.1 } }).toDestination();
+            correctSynth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.2 } }).toDestination();
+            incorrectSynth = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0.05, release: 0.3 } }).toDestination();
+            // Som de início mais suave
+            startSynth = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.02, decay: 0.4, sustain: 0.2, release: 0.5 } }).toDestination();
+            
+            // Sons de vitória e derrota
+            victorySynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "triangle" } }).toDestination();
+            defeatSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "sawtooth" } }).toDestination();
+
+            synthsReady = true;
+        }
+
+        // --- GERAÇÃO DE PARTÍCULAS ---
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles-container');
+            if (!particlesContainer) return; 
+            particlesContainer.innerHTML = ''; 
+            const numParticles = 40;
+            for (let i = 0; i < numParticles; i++) {
+                let particle = document.createElement('div');
+                particle.classList.add('particle');
+                const size = Math.random() * 4 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.top = `${Math.random() * 100 + 100}vh`;
+                particle.style.left = `${Math.random() * 100}vw`;
+                const duration = Math.random() * 15 + 10;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `${Math.random() * 10}s`;
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // --- FUNÇÕES DA API ---
+        async function fetchQuestions() {
+            try {
+                const response = await fetch(`${API_URL}/api/questions`);
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                questions = await response.json();
+            } catch (error) {
+                console.error(error);
+                document.getElementById('question-text').textContent = 'Não foi possível carregar o quiz. O servidor está online? (Execute run.ps1)';
+            }
+        }
+
+        async function checkAnswer(questionId, optionId) {
+            try {
+                const response = await fetch(`${API_URL}/api/answers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question_id: questionId, option_id: optionId })
+                });
+                const result = await response.json();
+                return result; // Retorna o objeto completo: { correct: boolean, correctOptionId?: number }
+            } catch (error) {
+                console.error('Erro ao verificar resposta:', error);
+                return { correct: false, error: true }; // Retorna um objeto de erro consistente
+            }
+        }
+
+        /**
+         * Envia o resultado do jogador para o backend.
+         */
+        async function submitScore() {
+            try {
+                await fetch(`${API_URL}/api/quiz/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name: playerName, score: score })
+                });
+            } catch (error) {
+                console.error('Erro ao enviar pontuação:', error);
+            }
+        }
+
+        // --- FUNÇÕES DO JOGO ---
+        function switchSection(from, to) {
+            from.classList.add('section-fade-out');
+            from.addEventListener('animationend', () => {
+                from.classList.add('hidden');
+                from.classList.remove('section-fade-out');
+                to.classList.remove('hidden');
+                to.classList.add('section-fade-in');
+            }, { once: true });
+        }
+
+        async function startQuiz() {
+            playerName = playerNameInput.value.trim();
+            if (!playerName) {
+                alert('Por favor, digite seu nome para começar!');
+                playerNameInput.focus();
+                return;
+            }
+
+            if (!synthsReady) setupAudio();
+            startSynth.triggerAttackRelease("C4", "0.5");
+            
+            await fetchQuestions();
+            if (questions.length === 0) {
+                alert('Não foi possível carregar as perguntas do quiz. Verifique se o servidor está rodando (execute o script run.ps1) e tente novamente.');
+                return; // Não inicia se não houver perguntas
+            }
+
+            switchSection(startSection, quizSection);
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('total-questions').textContent = questions.length;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            answerSelected = false;
+            const nextQuestionBtn = document.getElementById('next-question-btn');
+            const optionsContainer = document.getElementById('options-container');
+            const questionTextEl = document.getElementById('question-text');
+            const questionNumberEl = document.getElementById('question-number');
+
+            nextQuestionBtn.disabled = true;
+            optionsContainer.innerHTML = ''; 
+
+            const currentQuestion = questions[currentQuestionIndex];
+            questionNumberEl.textContent = currentQuestionIndex + 1;
+            
+            questionTextEl.classList.remove('question-slide-in');
+            void questionTextEl.offsetWidth; 
+            questionTextEl.textContent = currentQuestion.question_text;
+            questionTextEl.classList.add('question-slide-in');
+
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option.text;
+                button.classList.add('option-btn', 'w-full', 'p-4', 'bg-purple-900/50', 'text-left', 'rounded-lg', 'border-2', 'border-fuchsia-800', 'hover:bg-fuchsia-800/50', 'hover:border-orange-400', 'opacity-0');
+                button.style.animation = `slideInUp 0.5s ease-in-out ${0.1 * (index + 1)}s forwards`;
+                button.dataset.optionId = option.id;
+                button.addEventListener('click', selectAnswer);
+                button.addEventListener('mouseenter', () => { if (synthsReady) hoverSynth.triggerAttackRelease('C5', '8n') });
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        async function selectAnswer(e) {
+            if (answerSelected) return; 
+            answerSelected = true;
+
+            const selectedButton = e.target;
+            const optionId = parseInt(selectedButton.dataset.optionId);
+            const currentQuestion = questions[currentQuestionIndex];
+            const questionId = currentQuestion.id;
+            const optionsContainer = document.getElementById('options-container');
+            const scoreEl = document.getElementById('score');
+            const nextQuestionBtn = document.getElementById('next-question-btn');
+
+            const result = await checkAnswer(questionId, optionId);
+
+            Array.from(optionsContainer.children).forEach(btn => {
+                btn.disabled = true;
+            });
+
+            if (result.correct) {
+                selectedButton.classList.add('correct');
+                correctSynth.triggerAttackRelease("G4", "0.2");
+                score++;
+                scoreEl.textContent = score;
+                scoreEl.classList.add('score-popped');
+                scoreEl.addEventListener('animationend', () => scoreEl.classList.remove('score-popped'), { once: true });
+            } else {
+                selectedButton.classList.add('incorrect');
+                incorrectSynth.triggerAttackRelease("C3", "0.2");
+                
+                if (result.correctOptionId) {
+                    const correctButton = optionsContainer.querySelector(`[data-option-id="${result.correctOptionId}"]`);
+                    if (correctButton) {
+                        correctButton.classList.add('correct');
+                    }
+                }
+            }
+
+            nextQuestionBtn.disabled = false;
+            if (currentQuestionIndex === questions.length - 1) {
+                nextQuestionBtn.textContent = 'Ver Resultados';
+            }
+        }
+
+        function handleNextQuestion() {
+            if (synthsReady) clickSynth.triggerAttackRelease("C4", "8n");
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+                document.getElementById('next-question-btn').textContent = 'Próxima Pergunta';
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const finalScoreEl = document.getElementById('final-score');
+            const resultMessageEl = document.getElementById('result-message');
+
+            if (synthsReady) {
+                if (score > 3) {
+                    const now = Tone.now();
+                    victorySynth.triggerAttackRelease(["C4", "E4", "G4"], "8n", now);
+                    victorySynth.triggerAttackRelease(["G4", "B4", "D5"], "8n", now + 0.2);
+                    victorySynth.triggerAttackRelease(["C5", "E5", "G5"], "4n", now + 0.4);
+                } else {
+                    const now = Tone.now();
+                    defeatSynth.triggerAttackRelease(["A3", "C4", "E4"], "4n", now);
+                    defeatSynth.triggerAttackRelease(["F3", "A3", "C4"], "4n", now + 0.3);
+                }
+            }
+
+            submitScore();
+
+            switchSection(quizSection, resultSection);
+            finalScoreEl.textContent = score;
+            const percentage = (score / questions.length) * 100;
+            let message = '';
+            if (percentage === 100) { message = 'Excelente! Você é um verdadeiro especialista em evolução!'; } 
+            else if (percentage >= 70) { message = 'Muito bem! Você tem um ótimo conhecimento sobre o assunto.'; } 
+            else if (percentage >= 50) { message = 'Bom trabalho. Que tal assistir aos vídeos novamente para fixar alguns conceitos?'; } 
+            else { message = 'Não desanime! A evolução é um tema complexo. Tente novamente!'; }
+            resultMessageEl.textContent = message;
+        }
+        
+        function restartQuiz() {
+            if (synthsReady) clickSynth.triggerAttackRelease("C4", "8n");
+            loadRanking(); // Atualiza o ranking ao voltar para a tela inicial
+            switchSection(resultSection, startSection);
+            document.getElementById('next-question-btn').textContent = 'Próxima Pergunta';
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            loadRanking();
+            loadStudyVideos();
+        });
+
+        document.getElementById('start-quiz-btn').addEventListener('click', startQuiz);
+        document.getElementById('next-question-btn').addEventListener('click', handleNextQuestion);
+        document.getElementById('restart-quiz-btn').addEventListener('click', restartQuiz);
+        
+        document.body.addEventListener('click', () => {
+            if (Tone.context.state !== 'running') {
+                Tone.start();
+            }
+            if (!synthsReady) setupAudio();
+        }, { once: true });
+
+        document.querySelectorAll('.neon-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                if (synthsReady) hoverSynth.triggerAttackRelease('C5', '8n')
+            });
+        });
+
+    </script>
+</body>
+</html>
