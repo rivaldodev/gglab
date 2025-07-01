@@ -532,33 +532,35 @@
         }
 
         function showResults() {
+            switchSection(quizSection, resultSection);
+
             const finalScoreEl = document.getElementById('final-score');
             const resultMessageEl = document.getElementById('result-message');
 
-            if (synthsReady) {
-                if (score > 3) {
-                    const now = Tone.now();
-                    victorySynth.triggerAttackRelease(["C4", "E4", "G4"], "8n", now);
-                    victorySynth.triggerAttackRelease(["G4", "B4", "D5"], "8n", now + 0.2);
-                    victorySynth.triggerAttackRelease(["C5", "E5", "G5"], "4n", now + 0.4);
-                } else {
-                    const now = Tone.now();
-                    defeatSynth.triggerAttackRelease(["A3", "C4", "E4"], "4n", now);
-                    defeatSynth.triggerAttackRelease(["F3", "A3", "C4"], "4n", now + 0.3);
-                }
-            }
-
-            submitScore();
-
-            switchSection(quizSection, resultSection);
             finalScoreEl.textContent = score;
-            const percentage = (score / questions.length) * 100;
+
             let message = '';
-            if (percentage === 100) { message = 'Excelente! Você é um verdadeiro especialista em evolução!'; } 
-            else if (percentage >= 70) { message = 'Muito bem! Você tem um ótimo conhecimento sobre o assunto.'; } 
-            else if (percentage >= 50) { message = 'Bom trabalho. Que tal assistir aos vídeos novamente para fixar alguns conceitos?'; } 
-            else { message = 'Não desanime! A evolução é um tema complexo. Tente novamente!'; }
+            const percentage = (score / (questions.length * 10)) * 100;
+
+            if (percentage === 100) {
+                message = 'Excelente! Você acertou todas as perguntas e dominou o assunto!';
+                if(synthsReady) victorySynth.triggerAttackRelease(["C4", "E4", "G4"], "0.5");
+            } else if (percentage >= 70) {
+                message = 'Ótimo trabalho! Você tem um bom conhecimento sobre a evolução.';
+                 if(synthsReady) victorySynth.triggerAttackRelease(["C4", "E4"], "0.5");
+            } else if (percentage >= 40) {
+                message = 'Nada mal, mas que tal revisar os vídeos e tentar de novo?';
+                 if(synthsReady) defeatSynth.triggerAttackRelease(["C3", "G2"], "0.5");
+            } else {
+                message = 'Parece que precisamos estudar um pouco mais. Assista aos vídeos e não desista!';
+                 if(synthsReady) defeatSynth.triggerAttackRelease(["C3", "F#2"], "0.5");
+            }
             resultMessageEl.textContent = message;
+
+            // Envia a pontuação para o backend e depois atualiza o ranking
+            submitScore().then(() => {
+                loadRanking(); // Atualiza o ranking na tela inicial (que está escondida, mas será vista no restart)
+            });
         }
         
         function restartQuiz() {
