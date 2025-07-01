@@ -218,7 +218,7 @@
         // --- Elementos da UI ---
         const startSection = document.getElementById('start-section');
         const quizSection = document.getElementById('quiz-section');
-        const resultSection = document.getElementById('result-section');
+        const resultSection = document.getElementById('results-section');
         const playerNameInput = document.getElementById('player-name');
         const startQuizBtn = document.getElementById('start-quiz-btn');
         const rankingList = document.getElementById('ranking-list');
@@ -397,14 +397,14 @@
         /**
          * Envia o resultado do jogador para o backend.
          */
-        async function submitScore() {
+        async function submitScore(finalScore) {
             try {
                 await fetch(`${API_URL}/api/quiz/submit`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ name: playerName, score: score })
+                    body: JSON.stringify({ name: playerName, score: finalScore })
                 });
             } catch (error) {
                 console.error('Erro ao enviar pontuação:', error);
@@ -413,13 +413,16 @@
 
         // --- FUNÇÕES DO JOGO ---
         function switchSection(from, to) {
+            from.classList.remove('section-fade-in');
             from.classList.add('section-fade-out');
-            from.addEventListener('animationend', () => {
+
+            setTimeout(() => {
                 from.classList.add('hidden');
                 from.classList.remove('section-fade-out');
+
                 to.classList.remove('hidden');
                 to.classList.add('section-fade-in');
-            }, { once: true });
+            }, 450); // Duração um pouco menor que a animação (500ms)
         }
 
         async function startQuiz() {
@@ -493,12 +496,14 @@
 
             Array.from(optionsContainer.children).forEach(btn => {
                 btn.disabled = true;
+                // Remove o hover para que a cor não persista após a seleção
+                btn.classList.remove('hover:bg-fuchsia-800/50', 'hover:border-orange-400');
             });
 
             if (result.correct) {
                 selectedButton.classList.add('correct');
                 correctSynth.triggerAttackRelease("G4", "0.2");
-                score++;
+                score += 10; // Aumenta a pontuação em 10
                 scoreEl.textContent = score;
                 scoreEl.classList.add('score-popped');
                 scoreEl.addEventListener('animationend', () => scoreEl.classList.remove('score-popped'), { once: true });
@@ -536,11 +541,13 @@
 
             const finalScoreEl = document.getElementById('final-score');
             const resultMessageEl = document.getElementById('result-message');
+            const finalScore = score; // Guarda a pontuação final
 
-            finalScoreEl.textContent = score;
+            finalScoreEl.textContent = finalScore;
 
             let message = '';
-            const percentage = (score / (questions.length * 10)) * 100;
+            // Corrigido: A pontuação é baseada no número de acertos (score) sobre o total de questões.
+            const percentage = questions.length > 0 ? (finalScore / (questions.length * 10)) * 100 : 0;
 
             if (percentage === 100) {
                 message = 'Excelente! Você acertou todas as perguntas e dominou o assunto!';
@@ -556,13 +563,22 @@
                  if(synthsReady) defeatSynth.triggerAttackRelease(["C3", "F#2"], "0.5");
             }
             resultMessageEl.textContent = message;
+            
+            // Animação da pontuação
+            finalScoreEl.classList.add('score-popped');
+            finalScoreEl.addEventListener('animationend', () => {
+                finalScoreEl.classList.remove('score-popped');
+            }, { once: true });
 
-            // Envia a pontuação para o backend e depois atualiza o ranking
-            submitScore().then(() => {
-                loadRanking(); // Atualiza o ranking na tela inicial (que está escondida, mas será vista no restart)
+            // Envia a pontuação e, em seguida, atualiza o ranking na tela inicial
+            submitScore(finalScore).then(() => {
+                loadRanking(); // Atualiza o ranking exibido na tela inicial
             });
         }
-        
+
+        /**
+         * Reinicia o quiz, voltando à tela inicial e atualizando o ranking.
+         */
         function restartQuiz() {
             if (synthsReady) clickSynth.triggerAttackRelease("C4", "8n");
             loadRanking(); // Atualiza o ranking ao voltar para a tela inicial
@@ -596,4 +612,4 @@
 
     </script>
 </body>
-</html>
+</html

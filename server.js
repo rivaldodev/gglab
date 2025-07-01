@@ -152,42 +152,33 @@ app.post('/api/quiz/submit', async (req, res) => {
         return res.status(400).json({ error: 'Nome do jogador e pontuação são obrigatórios.' });
     }
 
+    const client = await pool.connect();
     try {
-        // Inicia uma transação para garantir a consistência dos dados
-        await pool.query('BEGIN');
+        await client.query('BEGIN');
 
-        // Verifica se o jogador já existe, senão, cria um novo
-        let playerResult = await pool.query('SELECT id FROM players WHERE name = $1', [name]);
-        let playerId;
+        // Verifica se o jogador já existe
+        const playerResult = await client.query('SELECT id, score FROM players WHERE name = $1', [name]);
 
         if (playerResult.rows.length > 0) {
-            playerId = playerResult.rows[0].id;
+            // Jogador existe, atualiza a pontuação se a nova for maior
+            const existingPlayer = playerResult.rows[0];
+            if (score > existingPlayer.score) {
+                await client.query('UPDATE players SET score = $1 WHERE id = $2', [score, existingPlayer.id]);
+            }
         } else {
-            // Insere o novo jogador e retorna seu ID
-            playerResult = await pool.query('INSERT INTO players (name) VALUES ($1) RETURNING id', [name]);
-            playerId = playerResult.rows[0].id;
+            // Jogador não existe, insere um novo
+            await client.query('INSERT INTO players (name, score) VALUES ($1, $2)', [name, score]);
         }
 
-        // Insere a tentativa do quiz com o ID do jogador e a pontuação
-        await pool.query(
-            'INSERT INTO quiz_attempts (player_id, score) VALUES ($1, $2)',
-            [playerId, score]
-        );
-
-        // Confirma a transação
-        await pool.query('COMMIT');
-        res.status(201).json({ message: 'Resultado do quiz salvo com sucesso.' });
+        await client.query('COMMIT');
+        res.status(201).json({ message: 'Resultado salvo com sucesso.' });
 
     } catch (error) {
-        // Em caso de erro, desfaz a transação
-        await pool.query('ROLLBACK');
+        await client.query('ROLLBACK');
         console.error('Erro ao salvar resultado do quiz:', error);
-        // Trata o erro de nome de jogador duplicado de forma amigável
-        if (error.code === '23505') { // Código de violação de unicidade do PostgreSQL
-             res.status(409).json({ error: 'O nome do jogador já existe.' });
-        } else {
-             res.status(500).json({ error: 'Erro interno do servidor' });
-        }
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    } finally {
+        client.release();
     }
 });
 
@@ -198,13 +189,14 @@ app.post('/api/quiz/submit', async (req, res) => {
 app.get('/api/ranking', async (req, res) => {
     console.log('LOG: Rota /api/ranking foi chamada.'); // Log de acesso
     try {
+        // A query foi ajustada para buscar diretamente da tabela de jogadores,
+        // que agora armazena a pontuação mais alta de cada um.
         const query = `
             SELECT 
-                p.name, 
-                qa.score
-            FROM quiz_attempts qa
-            JOIN players p ON qa.player_id = p.id
-            ORDER BY qa.score DESC, qa.attempted_at ASC
+                name, 
+                score
+            FROM players
+            ORDER BY score DESC
             LIMIT 10;
         `;
         const { rows } = await pool.query(query);
