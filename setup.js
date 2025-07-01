@@ -14,6 +14,14 @@ const pool = new Pool({
 
 async function setupDatabase() {
     console.log('Iniciando configuração do banco de dados...');
+
+    // DEBUG: Verifica se a variável de ambiente está definida na Vercel
+    if (!process.env.DATABASE_URL) {
+        console.error('ERRO FATAL: A variável de ambiente DATABASE_URL não foi encontrada!');
+        console.error('Por favor, configure as Environment Variables no painel do seu projeto na Vercel.');
+        process.exit(1); // Interrompe o build com um erro claro
+    }
+
     const client = await pool.connect();
     console.log('Conectado ao banco de dados com sucesso.');
 
